@@ -1,1 +1,9 @@
 # Artificial-Intelligence-Sample-Xtern
+
+I created histograms of all the features as they relate to the menu items, AKA the target attribute. Of all the features, the time in which students order is roughly normally distributed. Beyond that, it was more difficult to see the distribution of the other features. Because of time's distribution, it would be a useful metric for estimating how many meals should be prepared for a given time. 
+
+I do not see a way for the data provided to be reverse engineered and lead to an individual. The data is not personally identifiable, but if enough data is collected about the same individual students, it may be possible for a malicious actor to track someone's routine. The business outcomes of these factors are the most relevant. With this data, ingredients can be more optimally purchased. Discounts can be given to keep customers coming back to the theoretical restaurant, and staffing can be augmented to keep the business running efficiently without bringing in too many or too few employees. 
+
+I began by splitting the data into training and testing data. I used a 4:1 ratio for the split. I created several models to see what would be most accurate. Of these, a decision tree was most accurate given the test data. Using linear regression, I found that there is an insufficient linear relationship between the features and the target. In my final main function, I took a max of the accuracies for the models I used. The resulting maximum was the decision tree. Once picking the most accurate model, I pickle it, and in the case of decision trees, I plot out the full tree. 
+
+There are several considerations to be made about if using a decision tree is a suitable course of action. There may be features that should be weighed more heavily. While it does not seem sufficient to use a linear model, there may be more complex classifiers that can handle the data more effectively. 
