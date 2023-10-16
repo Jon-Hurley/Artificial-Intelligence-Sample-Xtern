@@ -58,6 +58,43 @@ def compute_statistics(X_train):
     print(f"X_train feature corr: {X_train.corr()}")
     print(f"X_train feature count: {X_train.count()}")
 
+def plot_data(X_train, y_train):
+    
+        # plot the data
+        plt.scatter(X_train['Year'], y_train)
+        plt.xlabel('Year')
+        plt.ylabel('Order')
+        plt.show()
+    
+        plt.scatter(X_train['Major'], y_train)
+        plt.xlabel('Major')
+        plt.ylabel('Order')
+        plt.show()
+    
+        plt.scatter(X_train['University'], y_train)
+        plt.xlabel('University')
+        plt.ylabel('Order')
+        plt.show()
+    
+        plt.scatter(X_train['Time'], y_train)
+        plt.xlabel('Time')
+        plt.ylabel('Order')
+        plt.show()
+
+        # create normal distribution
+        plt.hist(X_train['Year'], bins=20)
+        plt.show()
+
+        plt.hist(X_train['Major'], bins=20)
+        plt.show()
+
+        plt.hist(X_train['University'], bins=20)
+        plt.show()
+
+        plt.hist(X_train['Time'], bins=20)
+        plt.show()
+
+
 
 
 # use a support vector machine model
@@ -156,12 +193,6 @@ def pickler(clf, X_test):
 
 
 
-# plot the decision tree
-# plt.figure(figsize=(20, 20))
-# tree.plot_tree(clf, filled=True, fontsize=5)
-# plt.show()
-
-
 # print(y_labels)
 # print(X_data)
 # Compute the mean of the data
@@ -169,6 +200,7 @@ def pickler(clf, X_test):
 def main():
     # pickle the model with the highest accuracy
     X_train, X_test, y_train, y_test = process_data()
+
     svm_accuracy = svm_model()
     knn_accuracy = knn_model()
     tree_accuracy = decision_tree_model()
@@ -195,6 +227,10 @@ def main():
         clf.fit(X_train, y_train)
         pickler(clf, X_test)
         print("tree")
+        #plot the decision tree
+        plt.figure(figsize=(20, 20))
+        tree.plot_tree(clf, filled=True, fontsize=5)
+        plt.show()
     elif max_accuracy == 3:
         reg = linear_model.LinearRegression()
         reg.fit(X_train, y_train)
