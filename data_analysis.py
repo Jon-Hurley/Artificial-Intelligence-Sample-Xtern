@@ -10,7 +10,10 @@ from sklearn import linear_model
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn import preprocessing
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import make_classification
 import pickle
+import math
 # Read the data from the csv file
 
 def process_data():
@@ -36,10 +39,7 @@ def process_data():
     # Split the data into training and testing data
     # 1000 data points for testing
     # 4000 data points for training
-    y_test = y_train[:1000]
-    y_train = y_train[1000:]
-    X_test = X_train[:1000]
-    X_train = X_train[1000:]
+    X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.2)
     return X_train, X_test, y_train, y_test
 
 def compute_statistics(X_train):
@@ -82,16 +82,16 @@ def plot_data(X_train, y_train):
         plt.show()
 
         # create normal distribution
-        plt.hist(X_train['Year'], bins=20)
+        plt.hist(X_train['Year'], bins=math.ceil(math.sqrt(len(X_train['Year']))))
         plt.show()
 
-        plt.hist(X_train['Major'], bins=20)
+        plt.hist(X_train['Major'], bins=math.ceil(math.sqrt(len(X_train['Major']))))
         plt.show()
 
-        plt.hist(X_train['University'], bins=20)
+        plt.hist(X_train['University'], bins=math.ceil(math.sqrt(len(X_train['University']))))
         plt.show()
 
-        plt.hist(X_train['Time'], bins=20)
+        plt.hist(X_train['Time'], bins=math.ceil(math.sqrt(len(X_train['Time']))))
         plt.show()
 
 
@@ -115,8 +115,8 @@ def svm_model():
 
     # compute the accuracy of the model
     accuracy = accuracy_score(y_true, y_pred)
-    # print(f"svm accuracy: {accuracy}")
-    return accuracy
+    print(f"svm accuracy: {accuracy}")
+    return accuracy, y_pred
 
 
 def knn_model():
@@ -137,8 +137,27 @@ def knn_model():
 
     # compute the accuracy of the model
     accuracy = accuracy_score(y_true, y_pred)
-    # print(f"knn accuracy: {accuracy}")
-    return accuracy
+    print(f"knn accuracy: {accuracy}")
+    return accuracy, y_pred
+
+def random_forest_model():
+    X_train, X_test, y_train, y_test = process_data()
+
+    # use a random forest model
+    clf = RandomForestClassifier(max_depth=None, n_estimators=50, max_samples=0.5, max_features=0.5, random_state=0)
+     
+    clf.fit(X_train, y_train)
+    prediction = clf.predict([[1, 1, 1, 5]])
+    # print(f"random forest prediction: {prediction[0]}")
+
+    # run the test data through the model and get the predictions for the test data
+    y_pred = clf.predict(X_test)
+    y_true = y_test
+
+    # compute the accuracy of the model
+    accuracy = accuracy_score(y_true, y_pred)
+    print(f"random forest accuracy: {accuracy}")
+    return accuracy, y_pred
 
 
 def decision_tree_model():
@@ -156,8 +175,8 @@ def decision_tree_model():
 
     # compute the accuracy of the model
     accuracy = accuracy_score(y_true, y_pred)
-    # print(f"tree accuracy: {accuracy}")
-    return accuracy
+    print(f"tree accuracy: {accuracy}")
+    return accuracy, y_pred
 
 
 # use a linear regression model
@@ -169,8 +188,8 @@ def linear_regression_model():
     reg.fit(X_train, y_train)
     # print(reg.coef_)
     # print(np.mean((reg.predict(X_test) - y_test) ** 2))
-    # print(f"linear regression score: {reg.score(X_train, y_train)}")
-    return reg.score(X_train, y_train)
+    print(f"linear regression score: {reg.score(X_train, y_train)}")
+    return reg.score(X_train, y_train), reg.predict(X_test)
 
 
 
@@ -182,9 +201,9 @@ def logistic_regression_model():
 
     log = linear_model.LogisticRegression()
     log.fit(X_train, y_train)
-    # print(f"logistic regression score: {log.score(X_train, y_train)}")
+    print(f"logistic regression score: {log.score(X_train, y_train)}")
     # print(f"logistic regression prediction: {log.predict([[1, 1, 1, 5]])[0]}")
-    return log.score(X_train, y_train)
+    return log.score(X_train, y_train), log.predict(X_test)
 
 def pickler(clf, X_test):
     s = pickle.dumps(clf)
@@ -197,19 +216,18 @@ def pickler(clf, X_test):
 # print(X_data)
 # Compute the mean of the data
 
-def main():
+def final_model():
     # pickle the model with the highest accuracy
     X_train, X_test, y_train, y_test = process_data()
 
-    svm_accuracy = svm_model()
-    knn_accuracy = knn_model()
-    tree_accuracy = decision_tree_model()
-    linear_regression_accuracy = linear_regression_model()
-    logistic_regression_accuracy = logistic_regression_model()
+    svm_accuracy, svm_pred = svm_model()
+    knn_accuracy, knn_pred = knn_model()
+    tree_accuracy, decision_tree_pred = decision_tree_model()
+    random_forest_accuracy, random_forest_pred = random_forest_model()
     
     # pickle the model with the highest accuracy
 
-    model_accuracies = [svm_accuracy, knn_accuracy, tree_accuracy, linear_regression_accuracy, logistic_regression_accuracy]
+    model_accuracies = [ knn_accuracy, tree_accuracy, random_forest_accuracy]
     max_accuracy = model_accuracies.index(max(model_accuracies))
     print(max_accuracy)
     if max_accuracy == 0:
@@ -217,11 +235,13 @@ def main():
         clf.fit(X_train, y_train)
         pickler(clf, X_test)
         print("svm")
+        return svm_pred
     elif max_accuracy == 1:
         knn = KNeighborsClassifier(n_neighbors=10)
         knn.fit(X_train, y_train)
         pickler(knn, X_test)
         print("knn")
+        return knn_pred
     elif max_accuracy == 2:
         clf = tree.DecisionTreeClassifier()
         clf.fit(X_train, y_train)
@@ -231,16 +251,16 @@ def main():
         plt.figure(figsize=(20, 20))
         tree.plot_tree(clf, filled=True, fontsize=5)
         plt.show()
+        return decision_tree_pred
     elif max_accuracy == 3:
-        reg = linear_model.LinearRegression()
-        reg.fit(X_train, y_train)
-        pickler(reg, X_test)
-        print("linear")
-    else:
-        log = linear_model.LogisticRegression()
-        log.fit(X_train, y_train)
-        pickler(log, X_test)
-        print("logistic")
+        clf = RandomForestClassifier(max_depth=None, random_state=0, n_estimators=100)
+        X_train, y_train = make_classification(n_samples=1000, n_features=4)
+        clf.fit(X_train, y_train)
+        pickler(clf, X_test)
+        print("random forest")
+        return random_forest_pred
+def main():
+    final_model()
 
 
 
